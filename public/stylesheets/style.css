@@ -1,0 +1,59 @@
+body {
+  background-color: #d3d3d3;
+}
+
+
+
+.container-fluid {
+  margin-top: 5rem;
+}
+
+.data-container{
+  margin-top: 25%;
+  background-repeat: no-repeat;
+  background-size: 100%;
+
+
+
+  padding-bottom: 50%;
+  padding-top: 50%;
+  width: 100%;
+  border-radius: 5px;
+}
+
+.data-container-mini {
+  margin-top: 120%;
+}
+
+#pre-phase {
+  background-image: url("../images/phase0.jpeg");
+}
+#current-phase{
+  background-image: url("../images/phase1.jpeg");
+}
+#post-phase {
+  background-image: url("../images/phase2.jpeg");
+}
+#heartbeat-div{
+  background-image: url("../images/heart.png");
+}
+
+#phase, #current-heartbeat {
+  color: white;
+}
+
+.text-in-data-container{
+  margin-top: -1.5rem;
+}
+.text-in-data-container p {
+  font-size: 2rem;
+}
+
+#next-button, #back-button, #stop-button {
+  margin-top: -1.5rem;
+}
+
+
+.container-title {
+
+}

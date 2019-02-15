@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  <link rel="stylesheet" href="stylesheets/style.css">
+  <title>Pasitea-Webapp</title>
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark">
+  <a class="navbar-brand" id="brand-name" href="#">Pasitea-WebApp  IP: <%=ipAddress%></a>
+</nav>
+
+<div class="container-fluid">
+  <div class="row">
+
+    <!-- Phase section-->
+    <div class="col-6">
+
+      <div class="row">
+        <div class="col-12 text-center">
+          <h3>Phase</h3>
+        </div>
+      </div>
+
+      <!--Phase shapes-->
+      <div class="row">
+        <div class="col-3 text-center">
+          <div class="data-container mx-auto data-container-mini" id="pre-phase">
+            <div class="text-in-data-container">
+
+            </div>
+          </div>
+
+        </div>
+        <div class="col-6 text-center">
+          <div class="data-container mx-auto" id="current-phase">
+            <div class="text-in-data-container">
+              <p id="phase">1/5</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-3 text-center">
+          <div class="data-container mx-auto data-container-mini" id="post-phase">
+            <div class="text-in-data-container">
+
+            </div>
+          </div>
+        </div>
+      </div>
+      <!--Buttons section -->
+      <div class="row">
+        <div class="col-4 text-center">
+          <button type="button" class="btn btn-dark" id="back-button">Back</button>
+        </div>
+        <div class="col-4 text-center">
+          <button type="button" class="btn btn-dark" id="stop-button">Stop</button>
+        </div>
+        <div class="col-4 text-center">
+          <button type="button" class="btn btn-dark" id="next-button">Next</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12 text-center">
+          <div class="progress">
+            <div id="dynamic" class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+              <span id="current-progress"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hearbeat section -->
+    <div class="col-6">
+      <!-- Hearbeat Title -->
+      <div class="row">
+        <div class="col-12 text-center container-title">
+          <h3>Heartbeat</h3>
+        </div>
+      </div>
+
+      <!--Hearbeat shape-->
+      <div class="row">
+        <div class="col-3 text-center">
+
+        </div>
+        <div class="col-6 text-center">
+          <div class="data-container mx-auto" id="heartbeat-div">
+            <div class="text-in-data-container">
+              <p id="current-heartbeat">?</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-3 text-center">
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Optional JavaScript -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    $(function () {
+        const webapp = 'webapp';
+        const nextButton = $('#next-button');
+        const backButton = $('#back-button');
+        const stopButton = $('#stop-button');
+        const progress = $('.progress');
+        const heartbeat = $('#current-heartbeat');
+
+
+        var width = nextButton.width();
+        nextButton.width(width*1.5);
+        backButton.width(width*1.5);
+        stopButton.width(width*1.5);
+
+
+        var socket = io();
+
+
+
+        stopButton.css('visibility', 'hidden');
+        progress.css('visibility', 'hidden');
+
+        nextButton.click(function(e){
+            e.preventDefault(); // prevents page reloading
+            socket.emit('nextPhase', {message: "next phase"});
+            hide();
+
+
+            return false;
+        });
+        backButton.click(function(e){
+            e.preventDefault(); // prevents page reloading
+
+            socket.emit('previousPhase', {message: "previous phase"});
+            hide();
+            return false;
+        });
+        stopButton.click(function(e){
+            e.preventDefault(); // prevents page reloading
+
+            socket.emit('finalPhase', {message: "final phase"});
+
+            hide();
+            return false;
+        });
+
+        function hide(){
+            backButton.attr("disabled", true);
+            nextButton.attr("disabled", true);
+            progress.css('visibility', 'visible');
+        }
+
+
+        socket.on('phaseUpdate', function(data){
+            console.log(data);
+            update_ui(data.phaseUpdate);
+
+        });
+        socket.on('tDuration', function(data){
+            update_progressbar(data.tDuration);
+        });
+
+        socket.on('transitionComplete', function(data){
+            console.log(data.message);
+
+            transition_complete();
+
+        });
+
+        socket.on('whoAreYou', function (data) {
+            console.log(data.message);
+            socket.emit('add-user', {
+                username: webapp
+            });
+        });
+        function transition_complete(){
+            progress.css('visibility', 'hidden');
+            backButton.attr("disabled", false);
+            nextButton.attr("disabled", false);
+        }
+        socket.on('bpm', function (data) {
+            heartbeat.text(data.bpm)
+        })
+        function update_ui(msg){
+            update_images(msg);
+            update_phase(msg);
+            update_button(msg);
+        }
+        function update_progressbar(duration) {
+            var current_progress = 0;
+            var interval = setInterval(function() {
+                current_progress += 100/duration;
+                $("#dynamic")
+                    .css("width", current_progress + "%")
+                    .attr("aria-valuenow", current_progress)
+                    .text(Math.round(current_progress) + "% Complete");
+                if (current_progress >= 100){
+                    //transition_complete();
+                    clearInterval(interval);
+                }
+
+
+            }, 1000);
+        }
+
+        function update_button(msg){
+            var phase = Number(msg);
+            if(phase === 5){
+                stopButton.css('visibility', 'visible');
+                backButton.css('visibility', 'visible');
+                nextButton.css('visibility', 'hidden');
+
+
+            }
+            else if (phase === 6){
+                stopButton.css('visibility', 'hidden');
+                nextButton.css('visibility', 'hidden');
+                backButton.css('visibility', 'hidden');
+            }
+            else if (phase === 1){
+                backButton.css('visibility', 'hidden');
+                stopButton.css('visibility', 'hidden');
+            }
+            else{
+                stopButton.css('visibility', 'hidden');
+                backButton.css('visibility', 'visible');
+                nextButton.css('visibility', 'visible');
+
+            }
+
+        }
+        function update_images(msg){
+            var pre = String(Number(msg) - 1);
+            var post = String(Number(msg) + 1);
+
+            if(Number(msg)===6){
+                $('#current-phase').css("background-image", "url('../images/phase" + msg + ".jpeg')");
+                $('#pre-phase').css("background-image", "url('../images/phase" + msg + ".jpeg')");
+                $('#post-phase').css("background-image", "url('../images/phase" + msg + ".jpeg')");
+            }
+            else {
+                $('#current-phase').css("background-image", "url('../images/phase" + msg + ".jpeg')");
+                $('#pre-phase').css("background-image", "url('../images/phase" + pre + ".jpeg')");
+                $('#post-phase').css("background-image", "url('../images/phase" + post + ".jpeg')");
+            }
+
+
+        }
+        function update_phase(msg) {
+            if(Number(msg) === 6){
+                $('#phase').text("END");
+            }
+            else {
+                $('#phase').text(msg + "/5");
+            }
+
+        }
+    });
+</script>
+</body>
+</html>
