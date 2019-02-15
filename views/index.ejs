@@ -129,6 +129,7 @@
 
 
         var socket = io();
+        update_button(1)
 
 
 
@@ -156,6 +157,7 @@
             socket.emit('finalPhase', {message: "final phase"});
 
             hide();
+            stopButton.attr("disable", true);
             return false;
         });
 
